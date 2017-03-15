@@ -127,9 +127,9 @@ namespace HalfCircleScrollableMenu
 
                 positions.Add(new Point(translateAnimationX.To.Value, translateAnimationY.To.Value));
 
-                if (xPos<imageWidth)
+                if (xPos<0)
                 {
-                    im.Visibility = Visibility.Collapsed;
+                    im.Visibility = Visibility.Hidden;
                 }
             } 
 
