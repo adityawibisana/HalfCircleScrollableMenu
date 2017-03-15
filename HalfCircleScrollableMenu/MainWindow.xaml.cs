@@ -22,7 +22,8 @@ namespace HalfCircleScrollableMenu
     /// </summary>
     public partial class MainWindow : Window
     {
-        private int itemsAmount = 9;
+        private int itemsAmount = 9;        
+
         private int currentTransformIndex = 0;
         private int prevCurrentTransformIndex = 0;
 
@@ -126,7 +127,7 @@ namespace HalfCircleScrollableMenu
 
                 positions.Add(new Point(translateAnimationX.To.Value, translateAnimationY.To.Value));
 
-                if (xPos<0)
+                if (xPos<imageWidth)
                 {
                     im.Visibility = Visibility.Collapsed;
                 }
@@ -202,19 +203,12 @@ namespace HalfCircleScrollableMenu
 
                 i++;
 
-                if (translateAnimationX.To > 0)
-                {
-                    image.Visibility = Visibility.Visible;
-                }
+                image.Visibility = translateAnimationX.To > 0 ? Visibility.Visible : Visibility.Hidden; 
             }
 
             storyboard.Completed += ((sen, args) =>
             {
-                animationRunning = false;
-                foreach (Image image in rotationContainer.Children)
-                {
-                    SetImageVisibility(image);
-                }
+                animationRunning = false; 
             });
             storyboard.Begin();
             animationRunning = true;
