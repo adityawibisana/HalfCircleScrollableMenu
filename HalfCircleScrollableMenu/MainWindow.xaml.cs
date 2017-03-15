@@ -22,13 +22,17 @@ namespace HalfCircleScrollableMenu
     /// </summary>
     public partial class MainWindow : Window
     {
-        private int itemsAmount = 10;
+        private int itemsAmount = 9;
         private int currentTransformIndex = 0;
+        private int prevCurrentTransformIndex = 0;
+
+        private DateTime lastMouseWheelEvent = DateTime.MinValue;
+
         DoubleAnimation rotateAnimation = new DoubleAnimation();
         private bool animationRunning = false;
         double r = 300;
         double imageWidth = 150;
-        double imageHeight = 150;
+        double imageHeight = 150; 
 
         Grid rotationContainer;
         List<Point> positions = new List<Point>();
@@ -53,9 +57,42 @@ namespace HalfCircleScrollableMenu
                 Width = r,
                 Height = 2*r,
                 Margin = new Thickness(r * -1, 0, 0, 0)
+            }); 
+
+            this.MouseWheel += ((sender, e) =>
+            {
+                if (animationRunning)
+                    return;
+
+                prevCurrentTransformIndex = currentTransformIndex;
+
+
+                if (e.Delta>0)
+                {
+                    if (currentTransformIndex > 0)
+                        currentTransformIndex--;
+                    else
+                        currentTransformIndex = itemsAmount - 1;
+
+                    Animate(false);
+                }
+                else
+                {
+                    if (currentTransformIndex < itemsAmount - 1)
+                        currentTransformIndex++;
+                    else
+                        currentTransformIndex = 0;
+
+                    Animate(true);
+                }
             });
             
-        } 
+        }
+
+        private void MainWindow_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
 
         private void InitWithImages()
         {
@@ -64,15 +101,15 @@ namespace HalfCircleScrollableMenu
             {
                 BitmapImage bi = new BitmapImage(new Uri(String.Format(@"Images\{0}.png", i), UriKind.Relative));  
 
-
                 Image im = new Image() { Source = bi, Width = imageWidth, Height = imageHeight};
                 im.RenderTransform = new TranslateTransform();
                 rotationContainer.Children.Add(im);
 
+                double xPos = r * Math.Cos((360 / itemsAmount * i) * (Math.PI / 180));
                 DoubleAnimation translateAnimationX = new DoubleAnimation()
                 {
                     From = 0,
-                    To = r * Math.Cos((360 / itemsAmount * i) * (Math.PI / 180))
+                    To = xPos
                 };
                 Storyboard.SetTarget(translateAnimationX, im);
                 Storyboard.SetTargetProperty(translateAnimationX, new PropertyPath("(UIElement.RenderTransform).(TranslateTransform.X)"));
@@ -88,19 +125,22 @@ namespace HalfCircleScrollableMenu
                 storyboard.Children.Add(translateAnimationY);
 
                 positions.Add(new Point(translateAnimationX.To.Value, translateAnimationY.To.Value));
-            }
 
-            storyboard.Begin();
+                if (xPos<0)
+                {
+                    im.Visibility = Visibility.Collapsed;
+                }
+            } 
+
+            storyboard.Begin();            
         }
 
         private void Window_KeyDown(object sender, KeyEventArgs e)
         {
             if (animationRunning)
-                return;
+                return; 
 
-            bool isNext = true;
-
-            int tempCurrentTransformIndex = currentTransformIndex;            
+            prevCurrentTransformIndex = currentTransformIndex;            
             if (e.Key == Key.Down)
             {
                 if (currentTransformIndex < itemsAmount - 1)
@@ -108,7 +148,7 @@ namespace HalfCircleScrollableMenu
                 else
                     currentTransformIndex = 0;
 
-                isNext = true;
+                Animate(true);
             }
             else if (e.Key == Key.Up)
             {
@@ -117,13 +157,16 @@ namespace HalfCircleScrollableMenu
                 else 
                     currentTransformIndex = itemsAmount - 1;
 
-                isNext = false;
+                Animate(false);
             }
             else
             {
                 return;
-            }
+            } 
+        } 
 
+        private void Animate(bool isDown)
+        {
             Storyboard storyboard = new Storyboard();
             storyboard.SpeedRatio = 3;
 
@@ -132,9 +175,9 @@ namespace HalfCircleScrollableMenu
             foreach (Image image in rotationContainer.Children)
             {
                 //x translation     
-                int fromIndex = i + tempCurrentTransformIndex >= itemsAmount ? i + tempCurrentTransformIndex - itemsAmount : i + tempCurrentTransformIndex;
+                int fromIndex = i + prevCurrentTransformIndex >= itemsAmount ? i + prevCurrentTransformIndex - itemsAmount : i + prevCurrentTransformIndex;
 
-                int addition = isNext ? 1 : -1;
+                int addition = isDown ? 1 : -1;
                 int toIndex = fromIndex + addition >= itemsAmount ? fromIndex + addition - itemsAmount : fromIndex + addition;
                 toIndex = toIndex == -1 ? itemsAmount - 1 : toIndex;
 
@@ -158,14 +201,35 @@ namespace HalfCircleScrollableMenu
                 storyboard.Children.Add(translateAnimationY);
 
                 i++;
-            } 
+
+                if (translateAnimationX.To > 0)
+                {
+                    image.Visibility = Visibility.Visible;
+                }
+            }
 
             storyboard.Completed += ((sen, args) =>
             {
-                animationRunning = false; 
+                animationRunning = false;
+                foreach (Image image in rotationContainer.Children)
+                {
+                    SetImageVisibility(image);
+                }
             });
             storyboard.Begin();
-            animationRunning = true; 
-        } 
+            animationRunning = true;
+        }
+
+        private void SetImageVisibility(Image image)
+        {
+            if (image.RenderTransform.Value.OffsetX < 0)
+            {
+                image.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                image.Visibility = Visibility.Visible;
+            }
+        }
     }
 }
