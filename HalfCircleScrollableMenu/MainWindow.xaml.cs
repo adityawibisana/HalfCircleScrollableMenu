@@ -106,7 +106,7 @@ namespace HalfCircleScrollableMenu
                 im.RenderTransform = new TranslateTransform();
                 rotationContainer.Children.Add(im);
 
-                double xPos = r * Math.Cos((360 / itemsAmount * i) * (Math.PI / 180));
+                double xPos = r * Math.Sin((360 / itemsAmount * i) * (Math.PI / 180));
                 DoubleAnimation translateAnimationX = new DoubleAnimation()
                 {
                     From = 0,
@@ -119,7 +119,7 @@ namespace HalfCircleScrollableMenu
                 DoubleAnimation translateAnimationY = new DoubleAnimation()
                 {
                     From = 0,
-                    To = r * Math.Sin((360 / itemsAmount * i) * (Math.PI / 180))
+                    To = -1 * r * Math.Cos((360 / itemsAmount * i) * (Math.PI / 180))
                 };
                 Storyboard.SetTarget(translateAnimationY, im);
                 Storyboard.SetTargetProperty(translateAnimationY, new PropertyPath("(UIElement.RenderTransform).(TranslateTransform.Y)"));
@@ -203,7 +203,7 @@ namespace HalfCircleScrollableMenu
 
                 i++;
 
-                image.Visibility = translateAnimationX.To > 0 ? Visibility.Visible : Visibility.Hidden; 
+                image.Visibility = translateAnimationX.To >= 0 ? Visibility.Visible : Visibility.Hidden; 
             }
 
             storyboard.Completed += ((sen, args) =>
