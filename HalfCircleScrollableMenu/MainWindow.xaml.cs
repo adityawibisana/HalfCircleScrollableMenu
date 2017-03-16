@@ -107,8 +107,7 @@ namespace HalfCircleScrollableMenu
 
                 positions.Add(new Point(translateAnimationX.To.Value, translateAnimationY.To.Value));
 
-                im.Tag = i;
-                Debug.WriteLine(i);
+                im.Tag = i; 
             } 
 
             // create the rest
@@ -120,7 +119,7 @@ namespace HalfCircleScrollableMenu
                 im.RenderTransform = new TranslateTransform();
                 rotationContainer.Children.Add(im);
 
-                double xPos = (-1) * r * Math.Sin((180 / (itemsAmount + 1) * (i + 1)) * (Math.PI / 180));
+                double xPos = (-1) * r * Math.Sin((180 / (itemsAmount - visibleItems + 1) * (i-visibleItems + 1)) * (Math.PI / 180));
                 DoubleAnimation translateAnimationX = new DoubleAnimation()
                 {
                     From = 0,
@@ -133,7 +132,7 @@ namespace HalfCircleScrollableMenu
                 DoubleAnimation translateAnimationY = new DoubleAnimation()
                 {
                     From = 0,
-                    To = r * Math.Cos((180 / (itemsAmount + 1) * (i + 1)) * (Math.PI / 180))
+                    To = r * Math.Cos((180 / (itemsAmount - visibleItems + 1) * (i - visibleItems + 1)) * (Math.PI / 180))
                 };
                 Storyboard.SetTarget(translateAnimationY, im);
                 Storyboard.SetTargetProperty(translateAnimationY, new PropertyPath("(UIElement.RenderTransform).(TranslateTransform.Y)"));
@@ -144,8 +143,6 @@ namespace HalfCircleScrollableMenu
                 im.Tag = i;
 
                 im.Visibility = Visibility.Hidden; 
-
-                Debug.WriteLine(i); 
             }
 
             storyboard.Begin();            
@@ -239,19 +236,7 @@ namespace HalfCircleScrollableMenu
             });
             storyboard.Begin();
             animationRunning = true;
-        }
-
-        private void SetImageVisibility(Image image)
-        {
-            if (image.RenderTransform.Value.OffsetX < 0)
-            {
-                image.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                image.Visibility = Visibility.Visible;
-            }
-        }
+        } 
 
         private void ItemsAmountChanged(object sender, TextChangedEventArgs e)
         {
