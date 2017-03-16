@@ -6,7 +6,21 @@
         xmlns:local="clr-namespace:HalfCircleScrollableMenu"
         mc:Ignorable="d"
         Title="MainWindow" KeyDown="Window_KeyDown">
-    <Grid Name="LayoutRoot"> 
-        
+
+    <Grid Name="Control">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Items :" />
+            <TextBox Width="100" TextChanged="ItemsAmountChanged" Text="7" />
+            <TextBlock Text="Visible Items : " Margin="100,0" />
+            <TextBox Width="100" TextChanged="VisibleItemsChanged" Text="5" />
+
+        </StackPanel>
+        <Grid Name="LayoutRoot" Grid.Row="1">
+            
+        </Grid>
     </Grid>
 </Window>

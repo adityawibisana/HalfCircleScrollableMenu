@@ -1,19 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace HalfCircleScrollableMenu
 {
@@ -21,12 +14,9 @@ namespace HalfCircleScrollableMenu
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
-    {
-        private int itemsAmount = 4;
-        private int visibleItems = 3;
-
-        private int currentTransformIndex = 0;
-        private int prevCurrentTransformIndex = 0;
+    { 
+        private int itemsAmount = 7;
+        private int visibleItems = 5; 
 
         private DateTime lastMouseWheelEvent = DateTime.MinValue;
 
@@ -42,14 +32,20 @@ namespace HalfCircleScrollableMenu
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = this;
+            Init();
+        } 
+
+        private void Init()
+        {
             if (visibleItems > itemsAmount)
-                throw new Exception();
+                return;
 
             RotateTransform rt = new RotateTransform() { CenterX = r, CenterY = r };
             rotationContainer = new Grid()
             {
-                Width = 2*r,
-                Height = 2*r,
+                Width = 2 * r,
+                Height = 2 * r,
                 RenderTransform = rt
             };
 
@@ -59,38 +55,25 @@ namespace HalfCircleScrollableMenu
             LayoutRoot.Children.Add(new Grid()
             {
                 Width = r,
-                Height = 2*r,
+                Height = 2 * r,
                 Margin = new Thickness(r * -1, 0, 0, 0)
-            }); 
+            });
 
             this.MouseWheel += ((sender, e) =>
             {
                 if (animationRunning)
                     return;
 
-                prevCurrentTransformIndex = currentTransformIndex;
-
-
-                if (e.Delta>0)
+                if (e.Delta > 0)
                 {
-                    if (currentTransformIndex > 0)
-                        currentTransformIndex--;
-                    else
-                        currentTransformIndex = visibleItems ;
-
                     Animate(false);
                 }
                 else
                 {
-                    if (currentTransformIndex < visibleItems)
-                        currentTransformIndex++;
-                    else
-                        currentTransformIndex = 0;
-
                     Animate(true);
                 }
             });
-        } 
+        }
 
         private void InitWithImages()
         {
@@ -124,14 +107,12 @@ namespace HalfCircleScrollableMenu
 
                 positions.Add(new Point(translateAnimationX.To.Value, translateAnimationY.To.Value));
 
-                if (xPos<0)
-                {
-                    //im.Visibility = Visibility.Hidden;
-                }
+                im.Tag = i;
+                Debug.WriteLine(i);
             } 
 
             // create the rest
-            for (int i= 0;i<itemsAmount - visibleItems;i++)
+            for (int i= visibleItems;i<itemsAmount;i++)
             {
                 BitmapImage bi = new BitmapImage(new Uri(String.Format(@"Images\{0}.png", i+visibleItems), UriKind.Relative));
 
@@ -152,7 +133,7 @@ namespace HalfCircleScrollableMenu
                 DoubleAnimation translateAnimationY = new DoubleAnimation()
                 {
                     From = 0,
-                    To = -1 * r * Math.Cos((180 / (itemsAmount + 1) * (i + 1)) * (Math.PI / 180))
+                    To = r * Math.Cos((180 / (itemsAmount + 1) * (i + 1)) * (Math.PI / 180))
                 };
                 Storyboard.SetTarget(translateAnimationY, im);
                 Storyboard.SetTargetProperty(translateAnimationY, new PropertyPath("(UIElement.RenderTransform).(TranslateTransform.Y)"));
@@ -160,10 +141,11 @@ namespace HalfCircleScrollableMenu
 
                 positions.Add(new Point(translateAnimationX.To.Value, translateAnimationY.To.Value));
 
-                if (xPos < 0)
-                {
-                    //im.Visibility = Visibility.Hidden;
-                }
+                im.Tag = i;
+
+                im.Visibility = Visibility.Hidden; 
+
+                Debug.WriteLine(i); 
             }
 
             storyboard.Begin();            
@@ -174,29 +156,18 @@ namespace HalfCircleScrollableMenu
             if (animationRunning)
                 return; 
 
-            prevCurrentTransformIndex = currentTransformIndex;            
             if (e.Key == Key.Down)
-            {
-                if (currentTransformIndex < visibleItems)
-                    currentTransformIndex++;
-                else
-                    currentTransformIndex = 0;
-
+            {  
                 Animate(true);
             }
             else if (e.Key == Key.Up)
-            {
-                if (currentTransformIndex > 0)
-                    currentTransformIndex--;
-                else 
-                    currentTransformIndex = visibleItems ;
-
+            {  
                 Animate(false);
             }
             else
             {
                 return;
-            } 
+            }  
         } 
 
         private void Animate(bool isDown)
@@ -209,24 +180,26 @@ namespace HalfCircleScrollableMenu
             foreach (Image image in rotationContainer.Children)
             {
                 //x translation     
-
-                int fromIndex = i + prevCurrentTransformIndex;
-                if (fromIndex>=itemsAmount)
+                int fromIndex = (int) image.Tag;
+                int toIndex = fromIndex;
+                if (isDown)
                 {
-                    fromIndex = i + prevCurrentTransformIndex - itemsAmount;                    
+                    toIndex++;
+                    if (toIndex>=itemsAmount)
+                    {
+                        toIndex = 0;
+                    }
+                }
+                else
+                {
+                    toIndex--;
+                    if (toIndex<0)
+                    {
+                        toIndex = itemsAmount - 1;
+                    }
                 }
 
-                int addition = isDown ? 1 : -1;
-
-                int toIndex = fromIndex + addition;
-                if (toIndex>=itemsAmount)
-                {
-                    toIndex = fromIndex + addition - itemsAmount;
-                }
-                if (toIndex==-1)
-                {
-                    toIndex = itemsAmount - 1;
-                } 
+                image.Tag = toIndex;
 
                 DoubleAnimation translateAnimationX = new DoubleAnimation()
                 {
@@ -245,11 +218,19 @@ namespace HalfCircleScrollableMenu
                 };
                 Storyboard.SetTarget(translateAnimationY, image);
                 Storyboard.SetTargetProperty(translateAnimationY, new PropertyPath("(UIElement.RenderTransform).(TranslateTransform.Y)"));
-                storyboard.Children.Add(translateAnimationY);
+                storyboard.Children.Add(translateAnimationY); 
 
-                i++;
+                if (translateAnimationX.To.Value<0)
+                {
+                    image.Visibility = Visibility.Hidden;
+                }
+                else
+                {
+                    image.Visibility = Visibility.Visible;
+                }
 
-                //image.Visibility = translateAnimationX.To >= 0 ? Visibility.Visible : Visibility.Hidden; 
+                i++; 
+                
             }
 
             storyboard.Completed += ((sen, args) =>
@@ -269,6 +250,41 @@ namespace HalfCircleScrollableMenu
             else
             {
                 image.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void ItemsAmountChanged(object sender, TextChangedEventArgs e)
+        {
+            if (rotationContainer == null)
+                return;
+
+            TextBox tb = sender as TextBox;
+
+            if (Int32.TryParse(tb.Text, out int result))
+            {
+                rotationContainer.Children.Clear();
+                LayoutRoot.Children.Clear();
+                positions.Clear();
+
+                itemsAmount = result;
+                Init();
+            }
+        }
+
+        private void VisibleItemsChanged(object sender, TextChangedEventArgs e)
+        {
+            if (rotationContainer == null)
+                return;
+
+            TextBox tb = sender as TextBox;
+            if (Int32.TryParse(tb.Text, out int result))
+            {
+                rotationContainer.Children.Clear();
+                LayoutRoot.Children.Clear();
+                positions.Clear();
+
+                visibleItems = result;
+                Init();
             }
         }
     }
