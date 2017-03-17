@@ -38,12 +38,30 @@ namespace HalfCircleScrollableMenu
             Init();
         } 
 
+        public int GetSelectedIndex()
+        {
+            int helperIndex;
+            if (visibleItems % 2 == 0)
+            {
+                helperIndex = visibleItems / 2 - 1;
+            }
+            else
+            {
+                helperIndex = visibleItems / 2;
+            }
+
+            int retVal = currentIndex + helperIndex;
+            if (retVal >= itemsAmount)
+                retVal = retVal - itemsAmount;
+            return retVal;
+        }
+
         private void Init()
         {
             if (visibleItems > itemsAmount)
                 return;
 
-            //currentIndex = visibleItems / 2;
+            currentIndex = 0;
 
             RotateTransform rt = new RotateTransform() { CenterX = r, CenterY = r };
             rotationContainer = new Grid()
@@ -128,7 +146,7 @@ namespace HalfCircleScrollableMenu
             // create the rest
             for (int i= visibleItems;i<itemsAmount;i++)
             {
-                BitmapImage bi = new BitmapImage(new Uri(String.Format(@"Images\{0}.png", i+visibleItems), UriKind.Relative));
+                BitmapImage bi = new BitmapImage(new Uri(String.Format(@"Images\{0}.png", i), UriKind.Relative));
 
                 Image im = new Image() { Source = bi, Width = imageWidth, Height = imageHeight };
                 im.RenderTransform = new TranslateTransform();
@@ -184,53 +202,31 @@ namespace HalfCircleScrollableMenu
 
         public void ScrollToIndex(int destIndex)
         {
-            int tempCurr = currentIndex;
-            int tempDest = destIndex;
-            int normalDistance = 0;
-            while (tempCurr!=tempDest)
+            int helperIndex;
+            if (visibleItems % 2 == 0)
             {
-                tempCurr++;
-                if (tempCurr == itemsAmount)
-                {
-                    tempCurr = 0;
-                }
-                normalDistance++;
-            }
-
-            int revDistance = Math.Abs(currentIndex - destIndex);
-
-            if (revDistance<normalDistance)
-            { 
-                // scroll up
-                Task.Run(() =>
-                {
-                    while (currentIndex != destIndex)
-                    {
-                        Dispatcher.BeginInvoke(new Action(() =>
-                        {
-                            Animate(false);
-                        }));
-                        Task.Delay(500).Wait();
-                    }
-                });
+                helperIndex = visibleItems / 2 - 1;
             }
             else
             {
-                //scroll down 
-                Task.Run(() =>
-                {
-                    while (currentIndex != destIndex)
-                    {
-                        Dispatcher.BeginInvoke(new Action(() =>
-                        {
-                            
-                            Animate(true);
-                        }));
-                        Task.Delay(500).Wait();
-                    }
-                });
-            }
+                helperIndex = visibleItems / 2;
+            } 
 
+            destIndex = destIndex - helperIndex;
+            if (destIndex < 0)
+                destIndex = itemsAmount + destIndex;
+
+            Task.Run(() =>
+            {
+                while (currentIndex != destIndex)
+                {
+                    Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        Animate(false);
+                    }));
+                    Task.Delay(500).Wait();
+                }
+            });
         }
 
         private void Animate(bool isDown)
@@ -303,7 +299,7 @@ namespace HalfCircleScrollableMenu
             storyboard.Begin();
             animationRunning = true;
 
-            if (isDown) currentIndex++;
+            if (!isDown) currentIndex++;
             else currentIndex--;
 
             if (currentIndex >= itemsAmount)
@@ -356,6 +352,11 @@ namespace HalfCircleScrollableMenu
                 if (dest < itemsAmount)                    
                     ScrollToIndex(dest);
             } 
+        }
+
+        private void OnIndexClicked(object sender, RoutedEventArgs e)
+        {    
+            MessageBox.Show("SelectedIndex = "+GetSelectedIndex());
         }
     }
 }
