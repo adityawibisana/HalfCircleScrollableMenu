@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -16,7 +17,8 @@ namespace HalfCircleScrollableMenu
     public partial class MainWindow : Window
     { 
         private int itemsAmount = 7;
-        private int visibleItems = 5; 
+        private int visibleItems = 5;
+        private int currentIndex = 0;
 
         private DateTime lastMouseWheelEvent = DateTime.MinValue;
 
@@ -40,6 +42,8 @@ namespace HalfCircleScrollableMenu
         {
             if (visibleItems > itemsAmount)
                 return;
+
+            //currentIndex = visibleItems / 2;
 
             RotateTransform rt = new RotateTransform() { CenterX = r, CenterY = r };
             rotationContainer = new Grid()
@@ -86,7 +90,18 @@ namespace HalfCircleScrollableMenu
                 im.RenderTransform = new TranslateTransform();
                 rotationContainer.Children.Add(im);
 
-                double xPos = r * Math.Sin((180 / (visibleItems+1) * (i+1)) * (Math.PI / 180));
+                double xPos = 0, yPos = 0;
+                if (visibleItems%2==1) //if odd
+                {
+                    xPos = r * Math.Sin((180 / (visibleItems + 1) * (i + 1)) * (Math.PI / 180));
+                    yPos = -1 * r * Math.Cos((180 / (visibleItems + 1) * (i + 1)) * (Math.PI / 180));
+                }
+                else //if the items is even
+                {
+                    xPos = r * Math.Sin((180 / (visibleItems) * (i + 1)) * (Math.PI / 180));
+                    yPos = -1 * r * Math.Cos((180 / (visibleItems) * (i + 1)) * (Math.PI / 180));
+                }
+                
                 DoubleAnimation translateAnimationX = new DoubleAnimation()
                 {
                     From = 0,
@@ -99,7 +114,7 @@ namespace HalfCircleScrollableMenu
                 DoubleAnimation translateAnimationY = new DoubleAnimation()
                 {
                     From = 0,
-                    To = -1 * r * Math.Cos((180 / (visibleItems+1) * (i+1)) * (Math.PI / 180))
+                    To = yPos
                 };
                 Storyboard.SetTarget(translateAnimationY, im);
                 Storyboard.SetTargetProperty(translateAnimationY, new PropertyPath("(UIElement.RenderTransform).(TranslateTransform.Y)"));
@@ -167,8 +182,59 @@ namespace HalfCircleScrollableMenu
             }  
         } 
 
-        private void Animate(bool isDown)
+        public void ScrollToIndex(int destIndex)
         {
+            int tempCurr = currentIndex;
+            int tempDest = destIndex;
+            int normalDistance = 0;
+            while (tempCurr!=tempDest)
+            {
+                tempCurr++;
+                if (tempCurr == itemsAmount)
+                {
+                    tempCurr = 0;
+                }
+                normalDistance++;
+            }
+
+            int revDistance = Math.Abs(currentIndex - destIndex);
+
+            if (revDistance<normalDistance)
+            { 
+                // scroll up
+                Task.Run(() =>
+                {
+                    while (currentIndex != destIndex)
+                    {
+                        Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            Animate(false);
+                        }));
+                        Task.Delay(500).Wait();
+                    }
+                });
+            }
+            else
+            {
+                //scroll down 
+                Task.Run(() =>
+                {
+                    while (currentIndex != destIndex)
+                    {
+                        Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            
+                            Animate(true);
+                        }));
+                        Task.Delay(500).Wait();
+                    }
+                });
+            }
+
+        }
+
+        private void Animate(bool isDown)
+        { 
             Storyboard storyboard = new Storyboard();
             storyboard.SpeedRatio = 4;
 
@@ -232,10 +298,20 @@ namespace HalfCircleScrollableMenu
 
             storyboard.Completed += ((sen, args) =>
             {
-                animationRunning = false; 
+                animationRunning = false;                 
             });
             storyboard.Begin();
             animationRunning = true;
+
+            if (isDown) currentIndex++;
+            else currentIndex--;
+
+            if (currentIndex >= itemsAmount)
+                currentIndex = 0;
+            else if (currentIndex==-1)
+            {
+                currentIndex = itemsAmount - 1;
+            }
         } 
 
         private void ItemsAmountChanged(object sender, TextChangedEventArgs e)
@@ -271,6 +347,15 @@ namespace HalfCircleScrollableMenu
                 visibleItems = result;
                 Init();
             }
+        }
+
+        private void JumpToChanged(object sender, TextChangedEventArgs e)
+        {
+            if (Int32.TryParse((sender as TextBox).Text, out int dest))
+            {
+                if (dest < itemsAmount)                    
+                    ScrollToIndex(dest);
+            } 
         }
     }
 }

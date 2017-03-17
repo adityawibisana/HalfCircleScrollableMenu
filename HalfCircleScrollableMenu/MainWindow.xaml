@@ -12,11 +12,13 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <StackPanel Orientation="Horizontal">
+        <StackPanel Orientation="Horizontal" Background="Yellow">
             <TextBlock Text="Items :" />
             <TextBox Width="100" TextChanged="ItemsAmountChanged" Text="7" />
             <TextBlock Text="Visible Items : " Margin="100,0" />
             <TextBox Width="100" TextChanged="VisibleItemsChanged" Text="5" />
+            <TextBlock Text="Jump to : " Margin="100,0" />
+            <TextBox Width="100" TextChanged="JumpToChanged" />
 
         </StackPanel>
         <Grid Name="LayoutRoot" Grid.Row="1">
