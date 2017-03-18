@@ -18,9 +18,7 @@ namespace HalfCircleScrollableMenu
     { 
         private int itemsAmount = 7;
         private int visibleItems = 5;
-        private int currentIndex = 0;
-
-        private DateTime lastMouseWheelEvent = DateTime.MinValue;
+        private int currentIndex = 0; 
 
         DoubleAnimation rotateAnimation = new DoubleAnimation();
         private bool animationRunning = false;
@@ -73,7 +71,15 @@ namespace HalfCircleScrollableMenu
 
             LayoutRoot.Children.Add(rotationContainer);
 
-            InitWithImages();
+            //TODO: CHANGE this into your desired images
+            String[] dummyImages = new String[itemsAmount];
+            for (int i=0;i<itemsAmount;i++)
+            {
+                dummyImages[i] = (String.Format(@"Images\{0}.png", i));
+            }
+            InitWithImages(dummyImages);
+
+
             LayoutRoot.Children.Add(new Grid()
             {
                 Width = r,
@@ -97,12 +103,12 @@ namespace HalfCircleScrollableMenu
             });
         }
 
-        private void InitWithImages()
+        public void InitWithImages(String[] Images)
         {
             Storyboard storyboard = new Storyboard();  
             for (int i = 0; i < visibleItems; i++)
             {
-                BitmapImage bi = new BitmapImage(new Uri(String.Format(@"Images\{0}.png", i), UriKind.Relative));  
+                BitmapImage bi = new BitmapImage(new Uri(Images[i], UriKind.Relative));  
 
                 Image im = new Image() { Source = bi, Width = imageWidth, Height = imageHeight};
                 im.RenderTransform = new TranslateTransform();
@@ -146,7 +152,7 @@ namespace HalfCircleScrollableMenu
             // create the rest
             for (int i= visibleItems;i<itemsAmount;i++)
             {
-                BitmapImage bi = new BitmapImage(new Uri(String.Format(@"Images\{0}.png", i), UriKind.Relative));
+                BitmapImage bi = new BitmapImage(new Uri(Images[i], UriKind.Relative));
 
                 Image im = new Image() { Source = bi, Width = imageWidth, Height = imageHeight };
                 im.RenderTransform = new TranslateTransform();
