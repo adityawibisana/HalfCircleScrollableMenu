@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -33,8 +32,24 @@ namespace HalfCircleScrollableMenu
         {
             InitializeComponent();
             DataContext = this;
-            Init();
-        } 
+
+            this.MouseWheel += ((sender, e) =>
+            {
+                if (animationRunning)
+                    return;
+
+                if (e.Delta > 0)
+                {
+                    Animate(false);
+                }
+                else
+                {
+                    Animate(true);
+                }
+            });
+
+            SetImages(null);
+        }
 
         public int GetSelectedIndex()
         {
@@ -52,14 +67,28 @@ namespace HalfCircleScrollableMenu
             if (retVal >= itemsAmount)
                 retVal = retVal - itemsAmount;
             return retVal;
-        }
+        } 
 
-        private void Init()
-        {
+        public void SetImages(String[] Images)
+        { 
             if (visibleItems > itemsAmount)
                 return;
 
+            // cleaning up
+            if (rotationContainer!=null)
+                rotationContainer.Children.Clear();
+
+            LayoutRoot.Children.Clear();
+            positions.Clear();
             currentIndex = 0;
+
+            //TODO: REMOVE THIS CODE, as this will override your set Images
+            Images = new String[itemsAmount];
+            for (int i = 0; i < itemsAmount; i++)
+            {
+                Images[i] = (String.Format(@"Images\{0}.png", i));
+            } 
+            //TODO: REMOVE THIS CODE 
 
             RotateTransform rt = new RotateTransform() { CenterX = r, CenterY = r };
             rotationContainer = new Grid()
@@ -67,44 +96,10 @@ namespace HalfCircleScrollableMenu
                 Width = 2 * r,
                 Height = 2 * r,
                 RenderTransform = rt
-            };
+            }; 
 
-            LayoutRoot.Children.Add(rotationContainer);
+            LayoutRoot.Children.Add(rotationContainer);  
 
-            //TODO: CHANGE this into your desired images
-            String[] dummyImages = new String[itemsAmount];
-            for (int i=0;i<itemsAmount;i++)
-            {
-                dummyImages[i] = (String.Format(@"Images\{0}.png", i));
-            }
-            InitWithImages(dummyImages);
-
-
-            LayoutRoot.Children.Add(new Grid()
-            {
-                Width = r,
-                Height = 2 * r,
-                Margin = new Thickness(r * -1, 0, 0, 0)
-            });
-
-            this.MouseWheel += ((sender, e) =>
-            {
-                if (animationRunning)
-                    return;
-
-                if (e.Delta > 0)
-                {
-                    Animate(false);
-                }
-                else
-                {
-                    Animate(true);
-                }
-            });
-        }
-
-        public void InitWithImages(String[] Images)
-        {
             Storyboard storyboard = new Storyboard();  
             for (int i = 0; i < visibleItems; i++)
             {
@@ -325,12 +320,8 @@ namespace HalfCircleScrollableMenu
 
             if (Int32.TryParse(tb.Text, out int result))
             {
-                rotationContainer.Children.Clear();
-                LayoutRoot.Children.Clear();
-                positions.Clear();
-
-                itemsAmount = result;
-                Init();
+                itemsAmount = result; 
+                SetImages(null); 
             }
         }
 
@@ -341,13 +332,9 @@ namespace HalfCircleScrollableMenu
 
             TextBox tb = sender as TextBox;
             if (Int32.TryParse(tb.Text, out int result))
-            {
-                rotationContainer.Children.Clear();
-                LayoutRoot.Children.Clear();
-                positions.Clear();
-
-                visibleItems = result;
-                Init();
+            { 
+                visibleItems = result; 
+                SetImages(null); 
             }
         }
 
