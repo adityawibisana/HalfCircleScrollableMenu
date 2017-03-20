@@ -15,13 +15,13 @@ namespace HalfCircleScrollableMenu
     /// </summary>
     public partial class MainWindow : Window
     { 
-        private int itemsAmount = 7;
-        private int visibleItems = 5;
+        private int itemsAmount = 27;
+        private int visibleItems = 9;
         private int currentIndex = 0; 
 
         DoubleAnimation rotateAnimation = new DoubleAnimation();
         private bool animationRunning = false;
-        double r = 300;
+        double r = 500;
         double imageWidth = 150;
         double imageHeight = 150; 
 
@@ -31,7 +31,7 @@ namespace HalfCircleScrollableMenu
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = this;
+            DataContext = this; 
 
             this.MouseWheel += ((sender, e) =>
             {
@@ -78,14 +78,13 @@ namespace HalfCircleScrollableMenu
             if (rotationContainer!=null)
                 rotationContainer.Children.Clear();
 
-            LayoutRoot.Children.Clear();
             positions.Clear();
             currentIndex = 0;
 
             //TODO: REMOVE THIS CODE, as this will override your set Images
             Images = new String[itemsAmount];
             for (int i = 0; i < itemsAmount; i++)
-            {
+            {    
                 Images[i] = (String.Format(@"Images\{0}.png", i));
             } 
             //TODO: REMOVE THIS CODE 
@@ -95,7 +94,8 @@ namespace HalfCircleScrollableMenu
             {
                 Width = 2 * r,
                 Height = 2 * r,
-                RenderTransform = rt
+                RenderTransform = rt, 
+                Margin = new Thickness(-4.8*r,0,0,0) 
             }; 
 
             LayoutRoot.Children.Add(rotationContainer);  
@@ -179,7 +179,8 @@ namespace HalfCircleScrollableMenu
                 im.Visibility = Visibility.Hidden; 
             }
 
-            storyboard.Begin();            
+            storyboard.SpeedRatio = Double.MaxValue;
+            storyboard.Begin(); 
         }
 
         private void Window_KeyDown(object sender, KeyEventArgs e)
@@ -201,7 +202,7 @@ namespace HalfCircleScrollableMenu
             }  
         } 
 
-        public void ScrollToIndex(int destIndex)
+        public void ScrollToIndex(int destIndex, bool useDelay=true)
         {
             int helperIndex;
             if (visibleItems % 2 == 0)
@@ -223,17 +224,18 @@ namespace HalfCircleScrollableMenu
                 {
                     Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        Animate(false);
+                        Animate(false, useDelay);
                     }));
                     Task.Delay(500).Wait();
                 }
             });
         }
 
-        private void Animate(bool isDown)
+        private void Animate(bool isDown, bool useDelay=true)
         { 
             Storyboard storyboard = new Storyboard();
-            storyboard.SpeedRatio = 4;
+
+            storyboard.SpeedRatio = useDelay ? 4 : double.MaxValue;
 
             // translate the children
             int i = 0;

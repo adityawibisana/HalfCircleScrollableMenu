@@ -19,9 +19,9 @@
         </Grid.RowDefinitions>
         <StackPanel Orientation="Horizontal" Background="Yellow">
             <TextBlock Text="Items :" />
-            <TextBox Width="100" TextChanged="ItemsAmountChanged" Text="7" />
+            <TextBox Width="100" TextChanged="ItemsAmountChanged" Text="27" />
             <TextBlock Text="Visible Items : " Margin="100,0" />
-            <TextBox Width="100" TextChanged="VisibleItemsChanged" Text="5" />
+            <TextBox Width="100" TextChanged="VisibleItemsChanged" Text="9" />
             <TextBlock Text="Jump to : " Margin="100,0" />
             <TextBox Width="100" TextChanged="JumpToChanged" />
             <Button Content="Index" Margin="100,0" Click="OnIndexClicked" />
