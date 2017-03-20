@@ -202,7 +202,7 @@ namespace HalfCircleScrollableMenu
             }  
         } 
 
-        public void ScrollToIndex(int destIndex, bool useDelay=true)
+        public void ScrollToIndex(int destIndex, bool useDelay=false)
         {
             int helperIndex;
             if (visibleItems % 2 == 0)
@@ -218,24 +218,34 @@ namespace HalfCircleScrollableMenu
             if (destIndex < 0)
                 destIndex = itemsAmount + destIndex;
 
-            Task.Run(() =>
+            if (useDelay)
+            {
+                Task.Run(() =>
+                {
+                    while (currentIndex != destIndex)
+                    {
+                        Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            Animate(false, useDelay);
+                        }));
+                        Task.Delay(100).Wait();
+                    }
+                });
+            }
+            else
             {
                 while (currentIndex != destIndex)
                 {
-                    Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        Animate(false, useDelay);
-                    }));
-                    Task.Delay(500).Wait();
+                    Animate(false, useDelay); 
                 }
-            });
+            }
         }
 
-        private void Animate(bool isDown, bool useDelay=true)
+        private void Animate(bool isDown, bool useDelay=false)
         { 
             Storyboard storyboard = new Storyboard();
 
-            storyboard.SpeedRatio = useDelay ? 4 : double.MaxValue;
+            storyboard.SpeedRatio = useDelay ? 4 : 100000;
 
             // translate the children
             int i = 0;
