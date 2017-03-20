@@ -5,9 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:HalfCircleScrollableMenu"
         mc:Ignorable="d"
+        WindowStyle="None"
+        WindowState="Maximized"
         Title="MainWindow" KeyDown="Window_KeyDown">
 
     <Grid Name="Control">
+        <Grid.Background>
+            <ImageBrush ImageSource="Images/Circle.png" />
+        </Grid.Background>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -23,7 +28,8 @@
 
         </StackPanel>
         <Grid Name="LayoutRoot" Grid.Row="1">
-            
+            <!--<Ellipse Width="700" Height="700" Fill="Yellow"/>-->
+
         </Grid>
     </Grid>
 </Window>
