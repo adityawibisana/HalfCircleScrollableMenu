@@ -92,6 +92,8 @@ namespace HalfCircleScrollableMenu
                 newImages[i] = (String.Format(@"Images\{0}.png", i%itemsAmount)); 
             }
             itemsAmount = itemsAmount * loopForDummyAmount;
+
+            Images = newImages;
             //TODO: REMOVE THIS CODE 
 
 
@@ -109,7 +111,7 @@ namespace HalfCircleScrollableMenu
             Storyboard storyboard = new Storyboard();  
             for (int i = 0; i < visibleItems; i++)
             {
-                BitmapImage bi = new BitmapImage(new Uri(newImages[i], UriKind.Relative));  
+                BitmapImage bi = new BitmapImage(new Uri(Images[i], UriKind.Relative));  
 
                 Image im = new Image() { Source = bi, Width = imageWidth, Height = imageHeight};
                 im.RenderTransform = new TranslateTransform();
@@ -153,7 +155,7 @@ namespace HalfCircleScrollableMenu
             // create the rest 
             for (int i= visibleItems;i<itemsAmount;i++)
             {
-                BitmapImage bi = new BitmapImage(new Uri(newImages[i], UriKind.Relative));
+                BitmapImage bi = new BitmapImage(new Uri(Images[i], UriKind.Relative));
 
                 Image im = new Image() { Source = bi, Width = imageWidth, Height = imageHeight };
                 im.RenderTransform = new TranslateTransform();
@@ -300,9 +302,13 @@ namespace HalfCircleScrollableMenu
                 i++;
 
                 int imageTag = (int)image.Tag;
-                if (imageTag>=-1 && imageTag <=visibleItems)
+                if (imageTag>=-1 && imageTag <visibleItems)
                 {
                     image.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    image.Visibility = Visibility.Hidden;
                 }
             }
 
@@ -312,12 +318,13 @@ namespace HalfCircleScrollableMenu
                 foreach (Image image in rotationContainer.Children)
                 {
                     int imageTag = (int)image.Tag;
-                    if (imageTag < 0 && imageTag>=visibleItems)
+                    if (imageTag < 0 || imageTag>=visibleItems)
                     {
                         image.Visibility = Visibility.Hidden;
                     } 
                 }
             });
+
             storyboard.Begin();
             animationRunning = true;
 
