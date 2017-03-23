@@ -84,7 +84,8 @@ namespace HalfCircleScrollableMenu
             //TODO: REMOVE THIS CODE, as this will override your set Images
             int loopForDummyAmount = 1;
             if (itemsAmount == 1) loopForDummyAmount = 5;
-            else if (itemsAmount >= 2 && itemsAmount < 5) loopForDummyAmount = 3;
+            else if (itemsAmount == 2) loopForDummyAmount = 3;
+            else if (itemsAmount >=3 && itemsAmount <=5) loopForDummyAmount = 2; 
 
             String[] newImages = new String[itemsAmount*loopForDummyAmount];
             for (int i = 0; i < newImages.Length; i++)
