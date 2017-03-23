@@ -82,12 +82,18 @@ namespace HalfCircleScrollableMenu
             currentIndex = 0;
 
             //TODO: REMOVE THIS CODE, as this will override your set Images
-            Images = new String[itemsAmount];
-            for (int i = 0; i < itemsAmount; i++)
+            int loopForDummyAmount = 1;
+            if (itemsAmount == 1) loopForDummyAmount = 5;
+            else if (itemsAmount >= 2 && itemsAmount < 5) loopForDummyAmount = 3;
+
+            String[] newImages = new String[itemsAmount*loopForDummyAmount];
+            for (int i = 0; i < newImages.Length; i++)
             {    
-                Images[i] = (String.Format(@"Images\{0}.png", i));
-            } 
+                newImages[i] = (String.Format(@"Images\{0}.png", i%itemsAmount)); 
+            }
+            itemsAmount = itemsAmount * loopForDummyAmount;
             //TODO: REMOVE THIS CODE 
+
 
             RotateTransform rt = new RotateTransform() { CenterX = r, CenterY = r };
             rotationContainer = new Grid()
@@ -95,7 +101,7 @@ namespace HalfCircleScrollableMenu
                 Width = 2 * r,
                 Height = 2 * r,
                 RenderTransform = rt, 
-                Margin = new Thickness(-4.8*r,0,0,0) 
+                Margin = new Thickness(r,0,0,0) 
             }; 
 
             LayoutRoot.Children.Add(rotationContainer);  
@@ -103,7 +109,7 @@ namespace HalfCircleScrollableMenu
             Storyboard storyboard = new Storyboard();  
             for (int i = 0; i < visibleItems; i++)
             {
-                BitmapImage bi = new BitmapImage(new Uri(Images[i], UriKind.Relative));  
+                BitmapImage bi = new BitmapImage(new Uri(newImages[i], UriKind.Relative));  
 
                 Image im = new Image() { Source = bi, Width = imageWidth, Height = imageHeight};
                 im.RenderTransform = new TranslateTransform();
@@ -142,12 +148,12 @@ namespace HalfCircleScrollableMenu
                 positions.Add(new Point(translateAnimationX.To.Value, translateAnimationY.To.Value));
 
                 im.Tag = i; 
-            } 
+            }
 
-            // create the rest
+            // create the rest 
             for (int i= visibleItems;i<itemsAmount;i++)
             {
-                BitmapImage bi = new BitmapImage(new Uri(Images[i], UriKind.Relative));
+                BitmapImage bi = new BitmapImage(new Uri(newImages[i], UriKind.Relative));
 
                 Image im = new Image() { Source = bi, Width = imageWidth, Height = imageHeight };
                 im.RenderTransform = new TranslateTransform();
@@ -177,7 +183,7 @@ namespace HalfCircleScrollableMenu
                 im.Tag = i;
 
                 im.Visibility = Visibility.Hidden; 
-            }
+            } 
 
             storyboard.SpeedRatio = Double.MaxValue;
             storyboard.Begin(); 
@@ -202,7 +208,7 @@ namespace HalfCircleScrollableMenu
             }  
         } 
 
-        public void ScrollToIndex(int destIndex, bool useDelay=false)
+        public void ScrollToIndex(int destIndex, bool useDelay=true)
         {
             int helperIndex;
             if (visibleItems % 2 == 0)
@@ -241,7 +247,7 @@ namespace HalfCircleScrollableMenu
             }
         }
 
-        private void Animate(bool isDown, bool useDelay=false)
+        private void Animate(bool isDown, bool useDelay=true)
         { 
             Storyboard storyboard = new Storyboard();
 
@@ -290,24 +296,27 @@ namespace HalfCircleScrollableMenu
                 };
                 Storyboard.SetTarget(translateAnimationY, image);
                 Storyboard.SetTargetProperty(translateAnimationY, new PropertyPath("(UIElement.RenderTransform).(TranslateTransform.Y)"));
-                storyboard.Children.Add(translateAnimationY); 
+                storyboard.Children.Add(translateAnimationY);   
+                i++;
 
-                if (translateAnimationX.To.Value<0)
-                {
-                    image.Visibility = Visibility.Hidden;
-                }
-                else
+                int imageTag = (int)image.Tag;
+                if (imageTag>=-1 && imageTag <=visibleItems)
                 {
                     image.Visibility = Visibility.Visible;
                 }
-
-                i++; 
-                
             }
 
             storyboard.Completed += ((sen, args) =>
             {
-                animationRunning = false;                 
+                animationRunning = false;
+                foreach (Image image in rotationContainer.Children)
+                {
+                    int imageTag = (int)image.Tag;
+                    if (imageTag < 0 && imageTag>=visibleItems)
+                    {
+                        image.Visibility = Visibility.Hidden;
+                    } 
+                }
             });
             storyboard.Begin();
             animationRunning = true;
